@@ -109,7 +109,10 @@ const Main = () => {
               <Button
                 variant={serviceMode === "home" ? "default" : "ghost"}
                 className={`h-16 text-lg ${serviceMode === "home" ? "" : "hover:bg-muted"}`}
-                onClick={() => setServiceMode("home")}
+                onClick={() => {
+                  setServiceMode("home");
+                  navigate("/home-services");
+                }}
               >
                 <HomeIcon className="w-5 h-5 mr-2" />
                 To Home
