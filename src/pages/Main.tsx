@@ -1,26 +1,58 @@
 import { useState } from "react";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Menu, Search, User, Scissors, Sparkles, Baby, Home as HomeIcon, Building2 } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots, type CarouselApi } from "@/components/ui/carousel";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { Menu, Search, User, Scissors, Sparkles, Baby, Home as HomeIcon, Building2, Calendar, Settings, LogOut, Heart, HelpCircle, Bell, X } from "lucide-react";
 import salonHero from "@/assets/salon-hero.jpg";
 import serviceCutting from "@/assets/service-cutting.jpg";
 import serviceMassage from "@/assets/service-massage.jpg";
+import { toast } from "sonner";
 
 const Main = () => {
   const navigate = useNavigate();
   const [serviceMode, setServiceMode] = useState<"salon" | "home">("salon");
   const [selectedCategory, setSelectedCategory] = useState<"men" | "women" | "child">("men");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
 
   const promoCards = [
     { title: "50% Off First Visit", subtitle: "New Customer Special", gradient: "from-primary to-primary/80" },
     { title: "Premium Package", subtitle: "Hair + Beard + Massage", gradient: "from-secondary to-secondary/80" },
     { title: "Weekend Special", subtitle: "Book Now & Save 30%", gradient: "from-accent to-accent/80" },
-    { title: "Refer & Earn", subtitle: "Get ₹500 Credit", gradient: "from-primary/80 to-secondary/80" },
   ];
+
+  // Auto-play functionality
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  // Auto-scroll every 4 seconds
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [api]);
 
   const services = {
     men: [
@@ -47,10 +79,173 @@ const Main = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Side Menu */}
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            
+
+            {/* User Profile Section */}
+            <div 
+              className="p-6 border-b bg-gradient-to-br from-primary/5 to-primary/10 cursor-pointer hover:from-primary/10 hover:to-primary/15 transition-colors"
+              onClick={() => {
+                navigate("/profile");
+                setMenuOpen(false);
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xl font-bold">
+                  <User className="w-8 h-8" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-lg truncate">Welcome Back!</p>
+                  <p className="text-sm text-muted-foreground truncate">user@example.com</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Menu */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  navigate("/main");
+                  setMenuOpen(false);
+                }}
+              >
+                <HomeIcon className="w-5 h-5 mr-3" />
+                Home
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  navigate("/home-services");
+                  setMenuOpen(false);
+                }}
+              >
+                <HomeIcon className="w-5 h-5 mr-3" />
+                Home Services
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  navigate("/service-listing");
+                  setMenuOpen(false);
+                }}
+              >
+                <Scissors className="w-5 h-5 mr-3" />
+                Service Listing
+              </Button>
+
+              <Separator className="my-2" />
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  toast.info("My Bookings coming soon!");
+                  setMenuOpen(false);
+                }}
+              >
+                <Calendar className="w-5 h-5 mr-3" />
+                My Bookings
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  toast.info("Favorites coming soon!");
+                  setMenuOpen(false);
+                }}
+              >
+                <Heart className="w-5 h-5 mr-3" />
+                Favorites
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  toast.info("Notifications coming soon!");
+                  setMenuOpen(false);
+                }}
+              >
+                <Bell className="w-5 h-5 mr-3" />
+                Notifications
+              </Button>
+
+              <Separator className="my-2" />
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  navigate("/profile");
+                  setMenuOpen(false);
+                }}
+              >
+                <User className="w-5 h-5 mr-3" />
+                My Profile
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  toast.info("Settings coming soon!");
+                  setMenuOpen(false);
+                }}
+              >
+                <Settings className="w-5 h-5 mr-3" />
+                Settings
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  toast.info("Help & Support coming soon!");
+                  setMenuOpen(false);
+                }}
+              >
+                <HelpCircle className="w-5 h-5 mr-3" />
+                Help & Support
+              </Button>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12 text-base"
+                onClick={() => {
+                  toast.success("Logged out successfully!");
+                  navigate("/login");
+                  setMenuOpen(false);
+                }}
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                Logout
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Version 1.0.0
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Top Navbar */}
       <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)}>
             <Menu className="w-6 h-6" />
           </Button>
           
@@ -64,7 +259,7 @@ const Main = () => {
             </div>
           </div>
           
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
             <User className="w-6 h-6" />
           </Button>
         </div>
@@ -72,8 +267,8 @@ const Main = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
         {/* Hero Carousel */}
-        <div className="animate-fade-in">
-          <Carousel className="w-full">
+        <div className="animate-fade-in relative">
+          <Carousel setApi={setApi} className="w-full" opts={{ loop: true }}>
             <CarouselContent>
               {promoCards.map((promo, index) => (
                 <CarouselItem key={index}>
@@ -92,6 +287,13 @@ const Main = () => {
             <CarouselPrevious className="left-2" />
             <CarouselNext className="right-2" />
           </Carousel>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+            <CarouselDots
+              count={promoCards.length}
+              selectedIndex={current}
+              onDotClick={(index) => api?.scrollTo(index)}
+            />
+          </div>
         </div>
 
         {/* Service Mode Toggle */}

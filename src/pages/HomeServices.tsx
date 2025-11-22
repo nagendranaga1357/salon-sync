@@ -1,14 +1,66 @@
+import { useState } from "react";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { ArrowLeft, User, Shield, ShieldCheck, UserCheck, Star, Phone, MapPin } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots, type CarouselApi } from "@/components/ui/carousel";
+import { ArrowLeft, User, Shield, ShieldCheck, UserCheck, Star, Phone, MapPin, ArrowRight } from "lucide-react";
 import homeServicesHero from "@/assets/home-services-hero.jpg";
 import providerProfile from "@/assets/provider-profile.jpg";
 
 const HomeServices = () => {
   const navigate = useNavigate();
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+
+  // Hero carousel cards
+  const heroCards = [
+    {
+      title: "Trusted Home Salon Services",
+      description: "Verified female grooming professionals at your doorstep",
+      image: homeServicesHero,
+      gradient: "from-black/70 via-black/30 to-transparent",
+    },
+    {
+      title: "Safe & Hygienic Services",
+      description: "Following highest safety standards for your comfort",
+      image: homeServicesHero,
+      gradient: "from-black/70 via-black/30 to-transparent",
+    },
+    {
+      title: "Expert Beauty Professionals",
+      description: "Experienced specialists ready to serve you at home",
+      image: homeServicesHero,
+      gradient: "from-black/70 via-black/30 to-transparent",
+    },
+  ];
+
+  // Auto-play functionality
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  // Auto-scroll every 4 seconds
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [api]);
 
   const trustFeatures = [
     { icon: ShieldCheck, title: "Verified Professionals", desc: "All providers are background-checked" },
@@ -88,35 +140,52 @@ const HomeServices = () => {
           
           <h1 className="text-xl font-bold">Home Services</h1>
           
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
             <User className="w-6 h-6" />
           </Button>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        {/* Hero Section */}
-        <div className="animate-fade-in">
-          <Card className="border-0 overflow-hidden shadow-lg">
-            <CardContent className="p-0">
-              <div className="relative h-64">
-                <img
-                  src={homeServicesHero}
-                  alt="Home Services"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h2 className="text-3xl font-bold mb-2">Trusted Home Salon Services</h2>
-                  <p className="text-lg opacity-90">Verified female grooming professionals at your doorstep</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Hero Section Carousel */}
+        <div className="animate-fade-in relative">
+          <Carousel setApi={setApi} className="w-full" opts={{ loop: true }}>
+            <CarouselContent>
+              {heroCards.map((card, index) => (
+                <CarouselItem key={index}>
+                  <Card className="border-0 overflow-hidden shadow-lg">
+                    <CardContent className="p-0">
+                      <div className="relative h-64">
+                        <img
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className={`absolute inset-0 bg-gradient-to-t ${card.gradient}`} />
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                          <h2 className="text-3xl font-bold mb-2">{card.title}</h2>
+                          <p className="text-lg opacity-90">{card.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
+          </Carousel>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+            <CarouselDots
+              count={heroCards.length}
+              selectedIndex={current}
+              onDotClick={(index) => api?.scrollTo(index)}
+            />
+          </div>
         </div>
 
         {/* Trust Features */}
-        <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        {/* <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {trustFeatures.map((feature, index) => (
               <Card key={index} className="shadow-md">
@@ -130,36 +199,8 @@ const HomeServices = () => {
               </Card>
             ))}
           </div>
-        </div>
+        </div> */}
 
-        {/* Testimonials Carousel */}
-        <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          <h2 className="text-2xl font-bold mb-4">What Our Customers Say</h2>
-          <Carousel className="w-full">
-            <CarouselContent>
-              {testimonials.map((testimonial, index) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                  <Card className="shadow-md">
-                    <CardContent className="p-6 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground italic">"{testimonial.text}"</p>
-                      <p className="font-semibold">{testimonial.name}</p>
-                      <Badge variant="secondary" className="text-xs">Verified Home Service Customer</Badge>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
-          </Carousel>
-        </div>
 
         {/* Nearby Home Service Providers */}
         <div className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
@@ -251,6 +292,49 @@ const HomeServices = () => {
               </Card>
             ))}
           </div>
+          
+          {/* See All Button */}
+          <div className="flex justify-center mt-6">
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={() => navigate("/all-providers")}
+            >
+              See All Providers
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+
+
+        {/* Testimonials Carousel */}
+        <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <h2 className="text-2xl font-bold mb-4">What Our Customers Say</h2>
+          <Carousel className="w-full">
+            <CarouselContent>
+              {testimonials.map((testimonial, index) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                  <Card className="shadow-md">
+                    <CardContent className="p-6 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground italic">"{testimonial.text}"</p>
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <Badge variant="secondary" className="text-xs">Verified Home Service Customer</Badge>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
+          </Carousel>
         </div>
       </div>
     </div>

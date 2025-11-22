@@ -221,4 +221,37 @@ const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentProps<ty
 );
 CarouselNext.displayName = "CarouselNext";
 
-export { type CarouselApi, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext };
+const CarouselDots = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    count: number;
+    selectedIndex: number;
+    onDotClick?: (index: number) => void;
+  }
+>(({ className, count, selectedIndex, onDotClick, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("flex items-center justify-center gap-2", className)}
+      {...props}
+    >
+      {Array.from({ length: count }).map((_, index) => (
+        <button
+          key={index}
+          type="button"
+          onClick={() => onDotClick?.(index)}
+          className={cn(
+            "h-2 w-2 rounded-full transition-all",
+            index === selectedIndex
+              ? "bg-primary w-6"
+              : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+          )}
+          aria-label={`Go to slide ${index + 1}`}
+        />
+      ))}
+    </div>
+  );
+});
+CarouselDots.displayName = "CarouselDots";
+
+export { type CarouselApi, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, CarouselDots };
