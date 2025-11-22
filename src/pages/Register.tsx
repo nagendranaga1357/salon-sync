@@ -12,7 +12,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
-    fullName: "",
+   
     gender: "",
     location: "",
     email: "",
@@ -23,7 +23,7 @@ const Register = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.username || !formData.fullName || !formData.gender || !formData.location || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.username || !formData.gender || !formData.location || !formData.email || !formData.password || !formData.confirmPassword) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -69,17 +69,7 @@ const Register = () => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="Enter your full name"
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              className="h-12"
-            />
-          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
