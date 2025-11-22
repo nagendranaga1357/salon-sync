@@ -9,17 +9,26 @@ import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username && password) {
-      toast.success("Login successful!");
-      navigate("/main");
-    } else {
+    if (!email || !password) {
       toast.error("Please fill in all fields");
+      return;
     }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // In production, this would authenticate with your backend
+    toast.success("Login successful!");
+    navigate("/main");
   };
 
   return (
@@ -35,14 +44,15 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="your.email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="h-12"
+              autoComplete="email"
             />
           </div>
 
@@ -61,7 +71,7 @@ const Login = () => {
           <button
             type="button"
             className="text-sm text-primary hover:underline"
-            onClick={() => toast.info("Password reset functionality coming soon!")}
+            onClick={() => navigate("/forgot-password")}
           >
             Forgot Password?
           </button>

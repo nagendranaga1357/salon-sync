@@ -1,13 +1,21 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, MapPin, Star, Clock, Phone, Share2 } from "lucide-react";
 import salonHero from "@/assets/salon-hero.jpg";
 import serviceCutting from "@/assets/service-cutting.jpg";
 import serviceMassage from "@/assets/service-massage.jpg";
 import { toast } from "sonner";
+
+interface Service {
+  name: string;
+  price: string;
+  duration: string;
+}
 
 const SalonDetails = () => {
   const navigate = useNavigate();
@@ -19,13 +27,74 @@ const SalonDetails = () => {
     reviews: 245,
   };
 
-  const services = [
+  const services: Service[] = [
     { name: "Classic Haircut", price: "₹300", duration: "30 min" },
     { name: "Premium Styling", price: "₹500", duration: "45 min" },
     { name: "Hair Spa", price: "₹800", duration: "60 min" },
     { name: "Beard Grooming", price: "₹200", duration: "20 min" },
     { name: "Full Package", price: "₹1200", duration: "90 min" },
   ];
+
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+
+  // Get numeric price value
+  const getPriceValue = (priceString: string): number => {
+    const numericValue = priceString.replace(/[₹,]/g, "");
+    return parseFloat(numericValue) || 0;
+  };
+
+  // Calculate total price of selected services
+  const getTotalPrice = (): number => {
+    return selectedServices.reduce((total, index) => {
+      return total + getPriceValue(services[index].price);
+    }, 0);
+  };
+
+  // Toggle service selection
+  const toggleService = (index: number) => {
+    setSelectedServices((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
+  // Get combined duration (simplified - you might want to calculate based on service overlap)
+  const getCombinedDuration = (): string => {
+    if (selectedServices.length === 0) return "0 min";
+    // For simplicity, sum up all durations. In real app, you might want to handle overlaps
+    const totalMinutes = selectedServices.reduce((total, index) => {
+      const duration = services[index].duration.replace(/\s*min\s*/i, "");
+      return total + parseInt(duration) || 0;
+    }, 0);
+    return `${totalMinutes} min`;
+  };
+
+  const handleBookNow = () => {
+    if (selectedServices.length === 0) {
+      toast.error("Please select at least one service");
+      return;
+    }
+
+    const selectedServiceList = selectedServices.map((index) => services[index]);
+    const totalPrice = getTotalPrice();
+    const combinedDuration = getCombinedDuration();
+
+    // Create a combined service object for the booking flow
+    const combinedService: Service = {
+      name: selectedServiceList.length === 1 
+        ? selectedServiceList[0].name 
+        : `${selectedServiceList.length} Services Selected`,
+      price: `₹${totalPrice.toLocaleString()}`,
+      duration: combinedDuration,
+    };
+
+    navigate("/slot-timing", {
+      state: {
+        salon,
+        selectedService: combinedService,
+        selectedServices: selectedServiceList, // Pass individual services for details
+      },
+    });
+  };
 
   const gallery = [salonHero, serviceCutting, serviceMassage, serviceCutting];
 
@@ -110,20 +179,48 @@ const SalonDetails = () => {
         <Card className="border-0 shadow-md">
           <CardContent className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Services Offered</h2>
+            <p className="text-sm text-muted-foreground">Select one or more services to book</p>
             <div className="space-y-3">
-              {services.map((service, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between py-3">
-                    <div>
-                      <h3 className="font-semibold">{service.name}</h3>
-                      <p className="text-sm text-muted-foreground">{service.duration}</p>
+              {services.map((service, index) => {
+                const isSelected = selectedServices.includes(index);
+                return (
+                  <div key={index}>
+                    <div className="flex items-center gap-3 py-3">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleService(index)}
+                        className="h-5 w-5"
+                      />
+                      <div className="flex-1 flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold">{service.name}</h3>
+                          <p className="text-sm text-muted-foreground">{service.duration}</p>
+                        </div>
+                        <span className="font-bold text-primary">{service.price}</span>
+                      </div>
                     </div>
-                    <span className="font-bold text-primary">{service.price}</span>
+                    {index < services.length - 1 && <Separator />}
                   </div>
-                  {index < services.length - 1 && <Separator />}
-                </div>
-              ))}
+                );
+              })}
             </div>
+            {selectedServices.length > 0 && (
+              <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {selectedServices.length} Service{selectedServices.length > 1 ? "s" : ""} Selected
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Total Duration: {getCombinedDuration()}
+                    </p>
+                  </div>
+                  <span className="text-xl font-bold text-primary">
+                    ₹{getTotalPrice().toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -170,13 +267,22 @@ const SalonDetails = () => {
         {/* Book Now Button */}
         <div className="sticky bottom-4 z-10">
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-4">
+            <CardContent className="p-4 space-y-2">
+              {selectedServices.length > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Total Amount</span>
+                  <span className="font-bold text-lg">₹{getTotalPrice().toLocaleString()}</span>
+                </div>
+              )}
               <Button
                 size="lg"
                 className="w-full h-14 text-lg"
-                onClick={() => toast.success("Booking functionality coming soon!")}
+                onClick={handleBookNow}
+                disabled={selectedServices.length === 0}
               >
-                Book Now
+                {selectedServices.length === 0
+                  ? "Select Services to Book"
+                  : `Book Now (${selectedServices.length} Service${selectedServices.length > 1 ? "s" : ""})`}
               </Button>
             </CardContent>
           </Card>
